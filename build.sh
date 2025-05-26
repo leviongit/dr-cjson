@@ -4,7 +4,7 @@
 [ -z "${CC}" ] && CC="gcc"
 [ -z "${PLATFORM}" ] && PLATFORM="linux-amd64"
 
-ARTIFACT_DIRECTORY="build/${PLATFORM}"
+ARTIFACT_DIRECTORY="build/native/${PLATFORM}"
 
 mkdir -p "${ARTIFACT_DIRECTORY}"
 
