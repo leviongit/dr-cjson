@@ -1,0 +1,68 @@
+name: Test and Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+env:
+  LIBNAME: cjson
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        runner:
+          - macos-15
+          - ubuntu-22.04
+          - windows-2022
+      fail-fast: false
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: kfischer-okarin/download-dragonruby@v1
+        with:
+          version: "6.24"
+          license_tier: pro
+      - name: Windows Build Config
+        if: matrix.runner == 'windows-2022'
+        run: |
+          mkdir -p build/native/windows-amd64
+          clang -shared \
+            -w \
+            --sysroot=/c/mingw64 \
+            --target=x86_64-w64-mingw64 \
+            -fuse-ld=lld \
+            -isystem include -I. -I./include -fPIC \
+            -Wno-implicit-function-declaration \
+            -o build/native/windows-amd64/cjson.dll cjson.c
+
+      - name: Mac Build Config
+        if: matrix.runner == 'macos-15'
+        run: |
+          mkdir -p build/native/macos
+          clang -shared \
+            -w \
+            -isystem include -I . -fPIC \
+            -I ./include \
+            -Wno-implicit-function-declaration \
+            -o build/native/macos/cjson.dylib cjson.c
+
+      - name: Linux Build Config
+        if: matrix.runner == 'ubuntu-22.04'
+        run: |
+          mkdir -p build/native/linux-amd64
+          clang -shared \
+            -w \
+            -isystem include -I . -fPIC \
+            -I ./include \
+            -o build/native/linux-amd64/cjson.so cjson.c
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.LIBNAME }}-${{ runner.os }}
+          path: build/native/**/*

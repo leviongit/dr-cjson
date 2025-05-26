@@ -11,6 +11,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
+#include <assert.h>
 
 #define usym(name) usym__##name##__
 #define usymv(name) usym(val__##name)
@@ -51,7 +53,7 @@ struct json_opts_t {
 
 #define unwrap_istruct_json_opts(var) (struct json_opts_t *)mrb_istruct_ptr(var)
 
-static_assert(sizeof(struct json_opts_t) <= ISTRUCT_DATA_SIZE);
+static_assert(sizeof(struct json_opts_t) <= ISTRUCT_DATA_SIZE, "");
 
 struct json_opts_t default_opts = {.indent_width = 4,
                                    .indent_depth = 0,
@@ -133,7 +135,7 @@ mrb_value dcj_json_opts_new_m(mrb_state *mrb, mrb_value) {
   mrb_kwargs kws = {.values = values,
                     .num = 9,
                     .required = 0,
-                    .rest = nullptr,
+                    .rest = NULL,
                     .table = s_table};
 
   mrb_get_args(mrb, ":", &kws);
@@ -354,7 +356,7 @@ static size_t dcj_parse_hex_esc(mrb_state *mrb, struct dcj_parsing_ctx *ctx,
   uint32_t codepoint = 0;
   uint32_t tmpbufi;
   uint8_t tmpbuf[4];
-  static_assert(sizeof(tmpbufi) == sizeof(tmpbuf));
+  static_assert(sizeof(tmpbufi) == sizeof(tmpbuf), "");
 
 #if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
   for (int8_t i = 3; i >= 0; --i) {
@@ -728,7 +730,7 @@ mrb_value dcj_parse_json_m(mrb_state *mrb, mrb_value) {
   struct dcj_parsing_ctx ctx = {.str = str,
                                 .stri = str,
                                 .send = str + len,
-                                .obeg = nullptr,
+                                .obeg = NULL,
                                 .co = mrb_nil_value(),
                                 .opts = opts,
                                 .parsing_key = 0};
@@ -895,7 +897,7 @@ mrb_value dcj_write_json_ptrlen_str(mrb_state *mrb, const char *str,
   } else if (is_symbol) {
     mrb_str_cat_lit(mrb, bufstr, ":");
   }
-  
+
   const char *pbeg = strp;
 
   while (strp < stre) {
@@ -1264,7 +1266,7 @@ mrb_value dcj_nil_write_json_m(mrb_state *mrb, mrb_value) {
 void drb_register_c_extensions_with_api(mrb_state *mrb, struct drb_api_t *) {
 #define hexlutsetup(beg, end, off)                                             \
   do {                                                                         \
-    static_assert(beg <= end);                                                 \
+    static_assert(beg <= end, "");                                                 \
     for (uint8_t i = beg; i <= end; ++i) {                                     \
       hexlut[i] = i + off;                                                     \
     }                                                                          \
